@@ -223,19 +223,19 @@
       <div id="bio-details">
         <div class="bio-item">
           <div class="bio-icon">🎓</div>
-          <div><div class="bio-sub">학력</div><div class="bio-val">연세대학교 경영학과 졸업 (1965)</div></div>
+          <div><div class="bio-sub">학력</div><div class="bio-val" data-field="edu">연세대학교 경영학과 졸업 (1965)</div></div>
         </div>
         <div class="bio-item">
           <div class="bio-icon">💼</div>
-          <div><div class="bio-sub">직업</div><div class="bio-val">한미은행 부지점장 역임 (은퇴)</div></div>
+          <div><div class="bio-sub">직업</div><div class="bio-val" data-field="job">한미은행 부지점장 역임 (은퇴)</div></div>
         </div>
         <div class="bio-item">
           <div class="bio-icon">🤍</div>
-          <div><div class="bio-sub">가족</div><div class="bio-val">배우자 김마리아 권사, 자녀 3남매</div></div>
+          <div><div class="bio-sub">가족</div><div class="bio-val" data-field="family">배우자 김마리아 권사, 자녀 3남매</div></div>
         </div>
         <div class="bio-item">
           <div class="bio-icon">⛪</div>
-          <div><div class="bio-sub">신앙</div><div class="bio-val">노스필드장로교회 집사 (1995–2025)</div></div>
+          <div><div class="bio-sub">신앙</div><div class="bio-val" data-field="faith">노스필드장로교회 집사 (1995–2025)</div></div>
         </div>
       </div>
     </div>
@@ -256,7 +256,7 @@
     </div>
 
     <!-- SCHEDULE -->
-    <div class="section" id="sec-schedule">
+    <div class="section" id="sec-schedule"><div id="sched-list" style="display:contents">
       <div class="sched-item">
         <div class="sched-left">
           <div class="sched-day">6월 21일</div>
@@ -301,7 +301,7 @@
           <div class="sched-loc">교회 친교실</div>
         </div>
       </div>
-    </div>
+    </div></div>
 
     <!-- PHOTOS -->
     <div class="section" id="sec-photos">
@@ -326,7 +326,46 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────
 // Apps Script 배포 후 여기에 URL을 붙여넣으세요
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDAe67HtD9ihEJ-OtxC9MYuVVLpcj_YiEA8MhPX3n9-Lw1tzn6FfGaSV1M9dcwSL-M/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxT4gk1DBfgP7gZNvsmmCT0LqmclV1AOEX2JtxlhJoT-pzEjtPo4VIJthDw2ynEKeyX/exec';
+
+// ── 고인 정보 불러오기 ────────────────────────────────────
+async function loadProfile() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getProfile');
+    const p   = await res.json();
+    if (!p.name) return;
+    if (p.name)  document.getElementById('hero-name').textContent = p.name;
+    if (p.born && p.died)
+      document.getElementById('hero-dates').innerHTML = p.born + ' &nbsp;—&nbsp; ' + p.died;
+    if (p.verse)    document.getElementById('hero-verse').textContent    = '“' + p.verse + '”';
+    if (p.verseRef) document.getElementById('hero-verse-ref').textContent = p.verseRef;
+    if (p.bio)      document.getElementById('bio-text').textContent      = p.bio;
+    if (p.photo) {
+      const av = document.getElementById('hero-avatar');
+      av.innerHTML = '<img src="' + p.photo + '" alt="고인 사진" style="width:100%;height:100%;object-fit:cover;">';
+    }
+    ['edu','job','family','faith'].forEach(f => {
+      const el = document.querySelector('[data-field="' + f + '"]');
+      if (el && p[f]) el.textContent = p[f];
+    });
+    if (p.schedule) {
+      try {
+        const scheds = JSON.parse(p.schedule);
+        const list = document.getElementById('sched-list');
+        if (list) {
+          list.innerHTML = '';
+          scheds.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'sched-item';
+            div.innerHTML = '<div class="sched-left"><div class="sched-day">' + s.date + '</div><div class="sched-dot"></div></div><div><div class="sched-title">' + s.title + '</div><div class="sched-time">' + s.time + '</div><div class="sched-loc">' + s.loc + '</div></div>';
+            list.appendChild(div);
+          });
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+}
+loadProfile();
 
 // ── TAB SWITCH ───────────────────────────────────────────
 function switchTab(id, el) {
