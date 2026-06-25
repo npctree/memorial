@@ -126,15 +126,14 @@
     <div class="card-title">고인 기본 정보</div>
 
     <div class="field">
-      <label>고인 사진</label>
-      <div class="photo-upload" onclick="document.getElementById('photo-file').click()">
-        <img class="photo-preview" id="photo-preview" src="" alt="미리보기">
-        <div id="upload-icon">
-          <div class="photo-upload-icon">📷</div>
-          <div class="photo-upload-text">사진을 탭해서 올려주세요</div>
-        </div>
-        <input type="file" id="photo-file" accept="image/*" onchange="previewPhoto(event)">
+      <label>고인 사진 (Google Drive 링크)</label>
+      <input type="text" id="photo-url" placeholder="Google Drive 공유 링크를 붙여넣으세요" oninput="previewPhoto()">
+      <div id="photo-preview-box" style="margin-top:10px;display:none;">
+        <img id="photo-preview" src="" alt="미리보기" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #B4B2A9;">
       </div>
+      <p style="font-size:11px;color:#888780;margin-top:6px;line-height:1.6;">
+        Google Drive → 사진 우클릭 → 공유 → 링크 복사 후 붙여넣기
+      </p>
     </div>
 
     <div class="field">
@@ -203,21 +202,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvQgISz8W5ny98-v-LSe12dRzF4qESoYTUezf8GBWDf6A_GNNzIeNK1kgUd8wLUSuN/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnejAsk365r5Ywo-VDSgWoB7oEiMm5z6SkpYFyJRPcFaHbY-X7riXuauWM-vsO0sYS/exec';
 
 // ── 사진 미리보기 ─────────────────────────────────────
-let photoBase64 = '';
-function previewPhoto(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    photoBase64 = ev.target.result;
-    const preview = document.getElementById('photo-preview');
-    preview.src = photoBase64;
-    preview.style.display = 'block';
-    document.getElementById('upload-icon').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
+function previewPhoto() {
+  const url = document.getElementById('photo-url').value.trim();
+  if (!url) return;
+  // Google Drive 링크를 직접 표시 가능한 형태로 변환
+  const directUrl = convertDriveUrl(url);
+  const preview = document.getElementById('photo-preview');
+  const box = document.getElementById('photo-preview-box');
+  preview.src = directUrl;
+  box.style.display = 'block';
+}
+
+function convertDriveUrl(url) {
+  // https://drive.google.com/file/d/FILE_ID/view → https://drive.google.com/uc?id=FILE_ID
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return \`https://drive.google.com/uc?id=\${match[1]}\`;
+  // https://drive.google.com/open?id=FILE_ID
+  const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2) return \`https://drive.google.com/uc?id=\${match2[1]}\`;
+  return url;
 }
 
 // ── 일정 추가/삭제 ────────────────────────────────────
@@ -276,7 +282,7 @@ async function saveAll() {
     job:       document.getElementById('f-job').value.trim(),
     family:    document.getElementById('f-family').value.trim(),
     faith:     document.getElementById('f-faith').value.trim(),
-    photo:     photoBase64,
+    photo:     convertDriveUrl(document.getElementById('photo-url').value.trim()),
     schedule:  JSON.stringify(scheds),
   };
 
@@ -285,10 +291,18 @@ async function saveAll() {
   btn.classList.add('loading');
 
   try {
-    const params = new URLSearchParams(payload);
-    await fetch(APPS_SCRIPT_URL + '?' + params, { method: 'GET', mode: 'no-cors' });
-    showToast('저장되었습니다! 추모 페이지를 확인해 보세요');
-    setTimeout(() => window.open('index.html', '_blank'), 1500);
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await res.json();
+    if (result.status === 'ok') {
+      showToast('저장되었습니다! 추모 페이지를 확인해 보세요');
+      setTimeout(() => window.open('index.html', '_blank'), 1500);
+    } else {
+      showToast('오류: ' + (result.message || '다시 시도해 주세요'));
+    }
   } catch (e) {
     showToast('저장 중 오류가 발생했습니다');
   } finally {
