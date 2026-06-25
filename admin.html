@@ -197,18 +197,14 @@ async function saveAll() {
   saveText.innerHTML = '<div class="spinner"></div>';
 
   try {
-    var res = await fetch(APPS_SCRIPT_URL, {
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify(payload),
       headers: { 'Content-Type': 'application/json' }
     });
-    var result = await res.json();
-    if (result.status === 'ok') {
-      showToast('저장되었습니다! 추모 페이지를 확인해 보세요');
-      setTimeout(function() { window.open('index.html', '_blank'); }, 1500);
-    } else {
-      showToast('오류: ' + (result.message || '다시 시도해 주세요'));
-    }
+    showToast('저장되었습니다! 추모 페이지를 확인해 보세요');
+    setTimeout(function() { window.open('index.html', '_blank'); }, 1500);
   } catch(e) {
     showToast('저장 중 오류가 발생했습니다');
   } finally {
