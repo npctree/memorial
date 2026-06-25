@@ -58,12 +58,16 @@
   <div class="card">
     <div class="card-title">고인 기본 정보</div>
     <div class="field">
-      <label>고인 사진 (Google Drive 링크)</label>
-      <input type="text" id="f-photo" placeholder="Google Drive 공유 링크를 붙여넣으세요" oninput="previewPhoto()">
-      <div class="photo-preview-box" id="photo-preview-box">
-        <img id="photo-preview" src="" alt="미리보기">
+      <label>고인 사진</label>
+      <div style="background:#EFEDE6;border-radius:10px;padding:1rem;border:1px solid #DDD9CF;">
+        <p style="font-size:14px;color:#2C2C2A;font-weight:500;margin-bottom:6px;">📷 사진 업로드 방법</p>
+        <p style="font-size:13px;color:#5F5E5A;line-height:1.8;">
+          1. 고인 사진 파일 이름을 <strong>photo.jpg</strong> 로 변경<br>
+          2. <a href="https://github.com/npctree/memorial" target="_blank" style="color:#1C3959;">github.com/npctree/memorial</a> 접속<br>
+          3. "Add file" → "Upload files" → photo.jpg 업로드<br>
+          4. "Commit changes" 클릭
+        </p>
       </div>
-      <p class="field-note">Google Drive → 사진 우클릭 → 공유 → "링크가 있는 모든 사용자" → 링크 복사</p>
     </div>
     <div class="field">
       <label>성함 (예: 이요한 집사님)</label>
