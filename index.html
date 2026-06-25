@@ -326,7 +326,7 @@
 <script>
 // ── CONFIG ──────────────────────────────────────────────
 // Apps Script 배포 후 여기에 URL을 붙여넣으세요
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvQgISz8W5ny98-v-LSe12dRzF4qESoYTUezf8GBWDf6A_GNNzIeNK1kgUd8wLUSuN/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnejAsk365r5Ywo-VDSgWoB7oEiMm5z6SkpYFyJRPcFaHbY-X7riXuauWM-vsO0sYS/exec';
 
 // ── 고인 정보 불러오기 ────────────────────────────────────
 async function loadProfile() {
@@ -340,10 +340,15 @@ async function loadProfile() {
     if (p.verse)    document.getElementById('hero-verse').textContent    = '“' + p.verse + '”';
     if (p.verseRef) document.getElementById('hero-verse-ref').textContent = p.verseRef;
     if (p.bio)      document.getElementById('bio-text').textContent      = p.bio;
-    if (p.photo) {
-      const av = document.getElementById('hero-avatar');
-      av.innerHTML = '<img src="' + p.photo + '" alt="고인 사진" style="width:100%;height:100%;object-fit:cover;">';
-    }
+    // 사진: Sheets에 저장된 URL 또는 photo.jpg 사용
+    const av = document.getElementById('hero-avatar');
+    const img = document.createElement('img');
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    img.alt = '고인 사진';
+    img.src = 'photo.jpg';
+    img.onerror = function() { this.style.display='none'; };
+    av.innerHTML = '';
+    av.appendChild(img);
     ['edu','job','family','faith'].forEach(f => {
       const el = document.querySelector('[data-field="' + f + '"]');
       if (el && p[f]) el.textContent = p[f];
